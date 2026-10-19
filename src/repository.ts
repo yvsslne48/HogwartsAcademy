@@ -1,5 +1,5 @@
 import type { Wizard, Spell, NewWizard } from "./types";
-import { Log, MeasureTime } from "./decorators";
+import { Log, MeasureTime, ValidateSpellPower } from "./decorators";
 
 export class Repository<T extends { id: number }> {
   private items: T[] = [];
@@ -57,4 +57,10 @@ export class WizardRepository extends Repository<Wizard> {
     return this.getAll().reduce((maxId, wizard) => Math.max(maxId, wizard.id), 0) + 1;
   }
 }
-export class SpellRepository extends Repository<Spell> {}
+export class SpellRepository extends Repository<Spell> {
+  // Exercice 4 — un sort de puissance négative est refusé avant l'enregistrement.
+  @ValidateSpellPower
+  override add(spell: Spell): void {
+    super.add(spell);
+  }
+}

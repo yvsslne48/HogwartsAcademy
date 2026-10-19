@@ -123,12 +123,8 @@ spells.add({
   power: 80
 });
 
-spells.add({
-  id: 102,
-  name: "Protego",
-  category: "defense",
-  power: 60
-});
+// Protego (id 102) est ajouté dans le test de l'exercice 4, comme dans le TAF
+// (le garder ici aurait créé deux sorts avec le même id).
 
 const academy = new AcademyService(wizards, spells);
 
@@ -209,6 +205,32 @@ const spellEvents = academy.getSpellEvents(events);
 console.log(`${events.length} événements reçus, ${spellEvents.length} transmis au gestionnaire :`);
 spellEvents.forEach(handleSpellCast);
 // handleSpellCast({ type: "level-up", wizardId: 2, newLevel: 9 }); -> refusé à la compilation
+
+console.log("\n=== Exercice 4 : Valider la puissance d'un sort (@ValidateSpellPower) ===");
+spells.add({
+  id: 102,
+  name: "Protego",
+  category: "defense",
+  power: 50
+});
+
+try {
+  spells.add({
+    id: 103,
+    name: "Invalid Spell",
+    category: "attack",
+    power: -10
+  });
+} catch (error: unknown) {
+  // Sans ce try/catch, l'erreur levée par le décorateur arrêterait le programme.
+  const message = error instanceof Error ? error.message : String(error);
+  console.log(`Sort "Invalid Spell" refusé : ${message}`);
+}
+
+console.log(
+  "Sorts enregistrés :",
+  spells.getAll().map(spell => `${spell.name} (${spell.power})`)
+);
 
 // Compile-time demonstrations: these aliases are checked by TypeScript.
 type CastArguments = Parameters<AcademyService["castSpell"]>;
