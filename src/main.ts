@@ -61,9 +61,9 @@ class AcademyService {
   }
 
   findByHouse(house: House): WizardSummary[] {
+    // Exercice 2 — le service réutilise le filtre du référentiel.
     return this.wizards
-      .getAll()
-      .filter(wizard => wizard.house === house)
+      .findByHouse(house)
       .map(({ id, name, house }) => ({ id, name, house }));
   }
 
@@ -180,6 +180,13 @@ const cedric = wizards.register({
 console.log(`Id attribué à ${luna.name} : ${luna.id}`); // 4
 console.log(`Id attribué à ${cedric.name} : ${cedric.id}`); // 5
 console.log(wizards.findById(luna.id));
+
+console.log("\n=== Exercice 2 : Filtrer les sorciers par maison (findByHouse) ===");
+console.log("Gryffindor :", wizards.findByHouse("Gryffindor").map(wizard => wizard.name));
+console.log("Slytherin  :", wizards.findByHouse("Slytherin").map(wizard => wizard.name));
+console.log("Ravenclaw  :", wizards.findByHouse("Ravenclaw").map(wizard => wizard.name));
+console.log("Hufflepuff :", wizards.findByHouse("Hufflepuff").map(wizard => wizard.name));
+// wizards.findByHouse("Durmstrang"); -> refusé à la compilation (voir src/type-tests.ts)
 
 // Compile-time demonstrations: these aliases are checked by TypeScript.
 type CastArguments = Parameters<AcademyService["castSpell"]>;

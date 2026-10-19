@@ -30,3 +30,11 @@ wizards.register({ name: "Viktor Krum", house: "Durmstrang", level: 5, active: t
 type NaiveNewWizard = Omit<Wizard, "id">;
 const emptyWizard: NaiveNewWizard = {};
 const foreignWizard: NaiveNewWizard = { house: "Durmstrang" };
+
+// ---------------------------------------------------------------------------
+// Exercice 2 — findByHouse(house: Wizard["house"])
+// ---------------------------------------------------------------------------
+const ravenclaws: Wizard[] = wizards.findByHouse("Ravenclaw");
+
+// @ts-expect-error — une chaîne arbitraire n'est pas une House
+wizards.findByHouse("Durmstrang");

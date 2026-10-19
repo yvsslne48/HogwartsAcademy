@@ -40,6 +40,17 @@ export class WizardRepository extends Repository<Wizard> {
     return wizard;
   }
 
+  /**
+   * Exercice 2 — Renvoie tous les sorciers d'une maison.
+   * Wizard["house"] est un type à accès indexé : il vaut House, donc seules
+   * les quatre maisons de Poudlard sont acceptées (pas une chaîne arbitraire).
+   */
+  findByHouse(house: Wizard["house"]): Wizard[] {
+    return this.getAll().filter(
+      wizard => wizard.house === house
+    );
+  }
+
   // Prochain identifiant libre : plus grand id existant + 1, ce qui évite
   // toute collision avec les sorciers ajoutés directement via add().
   private nextId(): number {
