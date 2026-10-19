@@ -15,7 +15,7 @@ import {
 } from "./types";
 
 import { WizardRepository, SpellRepository } from "./repository";
-import { Log } from "./decorators";
+import { Log, Cache } from "./decorators";
 
 function isHouse(value: unknown): value is House {
   return (
@@ -49,6 +49,16 @@ function handleSpellCast(event: SpellCastEvent): void {
   console.log(
     `Wizard ${event.wizardId} cast ${event.spellName}`
   );
+}
+
+// Exercice 5 — Service dont la méthode est mise en cache par @Cache.
+class SpellCalculator {
+  @Cache
+  calculatePower(basePower: number, multiplier: number): number {
+    console.log("Calculating...");
+
+    return basePower * multiplier;
+  }
 }
 
 class AcademyService {
@@ -231,6 +241,18 @@ console.log(
   "Sorts enregistrés :",
   spells.getAll().map(spell => `${spell.name} (${spell.power})`)
 );
+
+console.log("\n=== Exercice 5 : Méthode mise en cache (@Cache) ===");
+const calculator = new SpellCalculator();
+
+console.log(calculator.calculatePower(10, 3)); // MISS : calcul -> 30
+console.log(calculator.calculatePower(10, 3)); // HIT  : 30 sans recalcul
+console.log(calculator.calculatePower(5, 2)); // MISS : nouveaux arguments -> 10
+
+// Le cache est propre à chaque instance (WeakMap) : une autre instance recalcule.
+console.log("Nouvelle instance de SpellCalculator (cache séparé) :");
+const otherCalculator = new SpellCalculator();
+console.log(otherCalculator.calculatePower(10, 3)); // MISS : calcul -> 30
 
 // Compile-time demonstrations: these aliases are checked by TypeScript.
 type CastArguments = Parameters<AcademyService["castSpell"]>;
