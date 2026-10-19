@@ -41,7 +41,23 @@ export type ArrayElement<T> =
   T extends (infer Item)[] ? Item : never;
 
 // Utility type examples.
-export type NewWizard = Omit<Wizard, "id">;
+
+/**
+ * Exercice 1 — Omit qui conserve les propriétés connues.
+ *
+ * Wizard a une signature d'index, donc keyof Wizard = string | number.
+ * Le Omit natif devient alors Pick<Wizard, string | number> : il ne garde
+ * QUE la signature d'index et perd name, house, level et active
+ * (un objet vide ou { house: "Durmstrang" } serait un NewWizard valide !).
+ * Le remappage de clés (as) retire uniquement « id » et garde tout le reste,
+ * signature d'index comprise.
+ */
+export type StrictOmit<T, K extends PropertyKey> = {
+  [P in keyof T as Exclude<P, K>]: T[P];
+};
+
+// Sorcier sans « id » : c'est le référentiel qui l'attribue (id interdit à l'appelant).
+export type NewWizard = StrictOmit<Wizard, "id"> & { id?: never };
 export type WizardSummary = Pick<Wizard, "id" | "name" | "house">;
 export type WizardUpdate = Partial<Wizard>;
 

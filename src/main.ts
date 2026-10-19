@@ -156,6 +156,31 @@ const events: AcademyEvent[] = [
 ];
 console.log(academy.getSpellEvents(events));
 
+// =====================================================================
+// TAF — Tests des exercices
+// =====================================================================
+
+console.log("\n=== Exercice 1 : Ajouter un nouveau sorcier (NewWizard) ===");
+// Aucun id fourni : c'est WizardRepository.register() qui l'attribue.
+const luna = wizards.register({
+  name: "Luna Lovegood",
+  house: "Ravenclaw",
+  level: 6,
+  active: true,
+  patronus: "Hare" // propriété dynamique autorisée par la signature d'index
+});
+
+const cedric = wizards.register({
+  name: "Cedric Diggory",
+  house: "Hufflepuff",
+  level: 7,
+  active: true
+});
+
+console.log(`Id attribué à ${luna.name} : ${luna.id}`); // 4
+console.log(`Id attribué à ${cedric.name} : ${cedric.id}`); // 5
+console.log(wizards.findById(luna.id));
+
 // Compile-time demonstrations: these aliases are checked by TypeScript.
 type CastArguments = Parameters<AcademyService["castSpell"]>;
 type CastResult = ReturnType<AcademyService["castSpell"]>;
