@@ -6,7 +6,7 @@
  * compilation ; si elle devenait valide, tsc échouerait avec
  * « Unused '@ts-expect-error' directive ». Les autres lignes doivent compiler.
  */
-import type { NewWizard, Wizard } from "./types";
+import type { NewWizard, SpellCastEvent, Wizard } from "./types";
 import type { WizardRepository } from "./repository";
 
 declare const wizards: WizardRepository;
@@ -38,3 +38,15 @@ const ravenclaws: Wizard[] = wizards.findByHouse("Ravenclaw");
 
 // @ts-expect-error — une chaîne arbitraire n'est pas une House
 wizards.findByHouse("Durmstrang");
+
+// ---------------------------------------------------------------------------
+// Exercice 3 — SpellCastEvent = Extract<AcademyEvent, { type: "spell-cast" }>
+// ---------------------------------------------------------------------------
+const lumos: SpellCastEvent = { type: "spell-cast", wizardId: 1, spellName: "Lumos" };
+const spellName: string = lumos.spellName; // accessible sans vérifier lumos.type
+
+// @ts-expect-error — un événement « level-up » n'est pas un SpellCastEvent
+const levelUp: SpellCastEvent = { type: "level-up", wizardId: 2, newLevel: 9 };
+
+// @ts-expect-error — un « spell-cast » sans spellName est incomplet
+const incompleteCast: SpellCastEvent = { type: "spell-cast", wizardId: 1 };

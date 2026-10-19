@@ -29,6 +29,10 @@ export type AcademyEvent =
   | { type: "level-up"; wizardId: number; newLevel: number }
   | { type: "wizard-expelled"; wizardId: number };
 
+// Exercice 3 — Extract garde uniquement le membre de l'union dont type vaut
+// "spell-cast" : { type: "spell-cast"; wizardId: number; spellName: string }.
+export type SpellCastEvent = Extract<AcademyEvent, { type: "spell-cast" }>;
+
 // Conditional type: choose an output type based on the spell category.
 export type SpellOutput<T extends SpellCategory> =
   T extends "attack" ? number :

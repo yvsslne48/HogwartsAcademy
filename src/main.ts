@@ -11,6 +11,7 @@ import {
   type WizardUpdate,
   type AttackSpell,
   type NonHealingCategory,
+  type SpellCastEvent,
 } from "./types";
 
 import { WizardRepository, SpellRepository } from "./repository";
@@ -39,6 +40,14 @@ function isWizard(value: unknown): value is Wizard {
     isHouse(candidate.house) &&
     typeof candidate.level === "number" &&
     typeof candidate.active === "boolean"
+  );
+}
+
+// Exercice 3 — Gestionnaire qui n'accepte QUE les événements « spell-cast ».
+// Grâce à SpellCastEvent, event.spellName est garanti (pas besoin de vérifier event.type).
+function handleSpellCast(event: SpellCastEvent): void {
+  console.log(
+    `Wizard ${event.wizardId} cast ${event.spellName}`
   );
 }
 
@@ -71,10 +80,10 @@ class AcademyService {
     return this.wizards.update(id, changes);
   }
 
-  getSpellEvents(events: AcademyEvent[]): Extract<AcademyEvent, { type: "spell-cast" }>[] {
+  // Exercice 3 — réutilise l'alias SpellCastEvent au lieu de répéter Extract<...>.
+  getSpellEvents(events: AcademyEvent[]): SpellCastEvent[] {
     return events.filter(
-      (event): event is Extract<AcademyEvent, { type: "spell-cast" }> =>
-        event.type === "spell-cast"
+      (event): event is SpellCastEvent => event.type === "spell-cast"
     );
   }
 }
@@ -187,6 +196,19 @@ console.log("Slytherin  :", wizards.findByHouse("Slytherin").map(wizard => wizar
 console.log("Ravenclaw  :", wizards.findByHouse("Ravenclaw").map(wizard => wizard.name));
 console.log("Hufflepuff :", wizards.findByHouse("Hufflepuff").map(wizard => wizard.name));
 // wizards.findByHouse("Durmstrang"); -> refusé à la compilation (voir src/type-tests.ts)
+
+console.log("\n=== Exercice 3 : Événements de lancement de sorts (Extract) ===");
+handleSpellCast({
+  type: "spell-cast",
+  wizardId: 1,
+  spellName: "Expelliarmus"
+});
+
+// Parmi tous les événements de l'académie, seuls les « spell-cast » arrivent au gestionnaire.
+const spellEvents = academy.getSpellEvents(events);
+console.log(`${events.length} événements reçus, ${spellEvents.length} transmis au gestionnaire :`);
+spellEvents.forEach(handleSpellCast);
+// handleSpellCast({ type: "level-up", wizardId: 2, newLevel: 9 }); -> refusé à la compilation
 
 // Compile-time demonstrations: these aliases are checked by TypeScript.
 type CastArguments = Parameters<AcademyService["castSpell"]>;
