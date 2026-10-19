@@ -17,16 +17,35 @@ import {
 import { WizardRepository, SpellRepository } from "./repository";
 import { Log, Cache } from "./decorators";
 
+// Exercice 6 — Les quatre maisons autorisées. Le type readonly House[]
+// empêche d'y glisser une faute de frappe ou une maison inconnue.
+const validHouses: readonly House[] = [
+  "Gryffindor",
+  "Slytherin",
+  "Ravenclaw",
+  "Hufflepuff"
+];
+
+// Exercice 6 — Type guard dédié. « value is House » est un prédicat de type :
+// quand la fonction renvoie true, TypeScript traite value comme une House.
 function isHouse(value: unknown): value is House {
   return (
-    value === "Gryffindor" ||
-    value === "Slytherin" ||
-    value === "Ravenclaw" ||
-    value === "Hufflepuff"
+    typeof value === "string" &&
+    validHouses.some(house => house === value)
+  );
+}
+
+// Valeurs autorisées par la signature d'index de Wizard.
+function isIndexSignatureValue(value: unknown): value is string | number | boolean {
+  return (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
   );
 }
 
 // Type guard: safely narrow unknown data to a Wizard.
+// Exercice 6 — house est validée par isHouse() : "Durmstrang" est rejeté.
 function isWizard(value: unknown): value is Wizard {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -39,7 +58,10 @@ function isWizard(value: unknown): value is Wizard {
     typeof candidate.name === "string" &&
     isHouse(candidate.house) &&
     typeof candidate.level === "number" &&
-    typeof candidate.active === "boolean"
+    typeof candidate.active === "boolean" &&
+    // Bonus : les propriétés dynamiques doivent respecter la signature
+    // d'index de Wizard ([key: string]: string | number | boolean).
+    Object.values(candidate).every(isIndexSignatureValue)
   );
 }
 
@@ -253,6 +275,40 @@ console.log(calculator.calculatePower(5, 2)); // MISS : nouveaux arguments -> 10
 console.log("Nouvelle instance de SpellCalculator (cache séparé) :");
 const otherCalculator = new SpellCalculator();
 console.log(otherCalculator.calculatePower(10, 3)); // MISS : calcul -> 30
+
+console.log("\n=== Exercice 6 : Type guard strict (isHouse / isWizard) ===");
+const validData: unknown = {
+  id: 1,
+  name: "Harry Potter",
+  house: "Gryffindor",
+  level: 5,
+  active: true
+};
+
+const invalidData: unknown = {
+  id: 2,
+  name: "Viktor",
+  house: "Durmstrang",
+  level: 5,
+  active: true
+};
+
+console.log("isWizard(validData)   :", isWizard(validData)); // true
+console.log("isWizard(invalidData) :", isWizard(invalidData)); // false
+console.log('isHouse("Ravenclaw")  :', isHouse("Ravenclaw")); // true
+console.log('isHouse("Durmstrang") :', isHouse("Durmstrang")); // false
+console.log("isHouse(42)           :", isHouse(42)); // false
+
+// Bonus : une propriété dynamique de type objet viole la signature d'index.
+const wandData: unknown = {
+  id: 1,
+  name: "Harry Potter",
+  house: "Gryffindor",
+  level: 5,
+  active: true,
+  wand: { wood: "Holly", core: "Phoenix feather" }
+};
+console.log("isWizard(wandData)    :", isWizard(wandData)); // false
 
 // Compile-time demonstrations: these aliases are checked by TypeScript.
 type CastArguments = Parameters<AcademyService["castSpell"]>;
