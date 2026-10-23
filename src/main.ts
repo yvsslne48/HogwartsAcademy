@@ -18,7 +18,6 @@ import { WizardRepository, SpellRepository } from "./repository";
 import { Log, Cache } from "./decorators";
 
 // Exercice 6 — Les quatre maisons autorisées. Le type readonly House[]
-// empêche d'y glisser une faute de frappe ou une maison inconnue.
 const validHouses: readonly House[] = [
   "Gryffindor",
   "Slytherin",
@@ -27,7 +26,6 @@ const validHouses: readonly House[] = [
 ];
 
 // Exercice 6 — Type guard dédié. « value is House » est un prédicat de type :
-// quand la fonction renvoie true, TypeScript traite value comme une House.
 function isHouse(value: unknown): value is House {
   return (
     typeof value === "string" &&
@@ -44,7 +42,6 @@ function isIndexSignatureValue(value: unknown): value is string | number | boole
   );
 }
 
-// Type guard: safely narrow unknown data to a Wizard.
 // Exercice 6 — house est validée par isHouse() : "Durmstrang" est rejeté.
 function isWizard(value: unknown): value is Wizard {
   if (typeof value !== "object" || value === null) {
@@ -59,14 +56,11 @@ function isWizard(value: unknown): value is Wizard {
     isHouse(candidate.house) &&
     typeof candidate.level === "number" &&
     typeof candidate.active === "boolean" &&
-    // Bonus : les propriétés dynamiques doivent respecter la signature
-    // d'index de Wizard ([key: string]: string | number | boolean).
     Object.values(candidate).every(isIndexSignatureValue)
   );
 }
 
 // Exercice 3 — Gestionnaire qui n'accepte QUE les événements « spell-cast ».
-// Grâce à SpellCastEvent, event.spellName est garanti (pas besoin de vérifier event.type).
 function handleSpellCast(event: SpellCastEvent): void {
   console.log(
     `Wizard ${event.wizardId} cast ${event.spellName}`
@@ -155,8 +149,6 @@ spells.add({
   power: 80
 });
 
-// Protego (id 102) est ajouté dans le test de l'exercice 4, comme dans le TAF
-// (le garder ici aurait créé deux sorts avec le même id).
 
 const academy = new AcademyService(wizards, spells);
 
@@ -193,12 +185,9 @@ const events: AcademyEvent[] = [
 ];
 console.log(academy.getSpellEvents(events));
 
-// =====================================================================
 // TAF — Tests des exercices
-// =====================================================================
 
 console.log("\n=== Exercice 1 : Ajouter un nouveau sorcier (NewWizard) ===");
-// Aucun id fourni : c'est WizardRepository.register() qui l'attribue.
 const luna = wizards.register({
   name: "Luna Lovegood",
   house: "Ravenclaw",
@@ -223,7 +212,6 @@ console.log("Gryffindor :", wizards.findByHouse("Gryffindor").map(wizard => wiza
 console.log("Slytherin  :", wizards.findByHouse("Slytherin").map(wizard => wizard.name));
 console.log("Ravenclaw  :", wizards.findByHouse("Ravenclaw").map(wizard => wizard.name));
 console.log("Hufflepuff :", wizards.findByHouse("Hufflepuff").map(wizard => wizard.name));
-// wizards.findByHouse("Durmstrang"); -> refusé à la compilation (voir src/type-tests.ts)
 
 console.log("\n=== Exercice 3 : Événements de lancement de sorts (Extract) ===");
 handleSpellCast({
@@ -232,11 +220,9 @@ handleSpellCast({
   spellName: "Expelliarmus"
 });
 
-// Parmi tous les événements de l'académie, seuls les « spell-cast » arrivent au gestionnaire.
 const spellEvents = academy.getSpellEvents(events);
 console.log(`${events.length} événements reçus, ${spellEvents.length} transmis au gestionnaire :`);
 spellEvents.forEach(handleSpellCast);
-// handleSpellCast({ type: "level-up", wizardId: 2, newLevel: 9 }); -> refusé à la compilation
 
 console.log("\n=== Exercice 4 : Valider la puissance d'un sort (@ValidateSpellPower) ===");
 spells.add({
@@ -254,7 +240,6 @@ try {
     power: -10
   });
 } catch (error: unknown) {
-  // Sans ce try/catch, l'erreur levée par le décorateur arrêterait le programme.
   const message = error instanceof Error ? error.message : String(error);
   console.log(`Sort "Invalid Spell" refusé : ${message}`);
 }
@@ -271,7 +256,6 @@ console.log(calculator.calculatePower(10, 3)); // MISS : calcul -> 30
 console.log(calculator.calculatePower(10, 3)); // HIT  : 30 sans recalcul
 console.log(calculator.calculatePower(5, 2)); // MISS : nouveaux arguments -> 10
 
-// Le cache est propre à chaque instance (WeakMap) : une autre instance recalcule.
 console.log("Nouvelle instance de SpellCalculator (cache séparé) :");
 const otherCalculator = new SpellCalculator();
 console.log(otherCalculator.calculatePower(10, 3)); // MISS : calcul -> 30
@@ -299,7 +283,6 @@ console.log('isHouse("Ravenclaw")  :', isHouse("Ravenclaw")); // true
 console.log('isHouse("Durmstrang") :', isHouse("Durmstrang")); // false
 console.log("isHouse(42)           :", isHouse(42)); // false
 
-// Bonus : une propriété dynamique de type objet viole la signature d'index.
 const wandData: unknown = {
   id: 1,
   name: "Harry Potter",

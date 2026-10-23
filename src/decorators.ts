@@ -53,12 +53,6 @@ export function MeasureTime(
   };
 }
 
-/**
- * Exercice 4 — Refuse un sort dont la puissance est négative.
- * Le premier argument de la méthode décorée est inspecté : s'il possède une
- * propriété numérique « power » inférieure à zéro, une erreur est levée AVANT
- * l'appel de la méthode d'origine (le sort n'est donc jamais enregistré).
- */
 export function ValidateSpellPower(
   target: object,
   propertyKey: string | symbol,
@@ -88,12 +82,6 @@ export function ValidateSpellPower(
   };
 }
 
-/**
- * Exercice 5 — Met en cache les résultats d'une méthode synchrone.
- * Chaque instance a son propre cache (une Map rangée dans une WeakMap) :
- * deux objets ne partagent pas leurs résultats, et le cache disparaît avec
- * l'objet. La clé du cache est la liste des arguments sérialisée en JSON.
- */
 export function Cache(
   target: object,
   propertyKey: string | symbol,

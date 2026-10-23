@@ -1,203 +1,116 @@
-# Hogwarts Academy — Mini-projet TypeScript
+# Hogwarts Academy
 
-Petit projet en ligne de commande (thème Poudlard conservé) pour pratiquer :
+Mini-projet TypeScript réalisé dans le cadre du cours. J'ai gardé le thème Harry Potter : l'application gère une petite académie de sorciers, avec des sorciers, des sorts et des événements (lancement de sort, passage de niveau, renvoi d'un élève).
 
-- les génériques et leurs contraintes ;
-- les utility types : `Pick`, `Omit`, `Partial`, `Record`, `Parameters`, `ReturnType`, `Extract`, `Exclude` ;
-- les types conditionnels et `infer` ;
-- les signatures d'index ;
-- les type guards et les unions discriminées ;
-- les décorateurs de méthode « legacy » de TypeScript (`target`, `propertyKey`, `descriptor`).
+Le projet tourne dans la console. Il n'y a pas de base de données, les données sont gardées en mémoire pendant l'exécution.
 
-## Prérequis
+Notions TypeScript utilisées :
 
-- Node.js 18 ou plus récent
-- npm
+- génériques
+- utility types (Pick, Omit, Partial, Record, Extract, Exclude, Parameters, ReturnType)
+- types conditionnels et infer
+- signatures d'index
+- type guards et unions discriminées
+- décorateurs de méthode (ancienne API, activée avec `experimentalDecorators`)
 
-## Installation et exécution
+## Technologies
+
+- TypeScript 5
+- Node.js 18 ou plus
+- tsx, pour exécuter les fichiers .ts directement
+- Git (un commit par exercice)
+
+## Installation
 
 ```bash
-npm install        # installe typescript, tsx et @types/node
-npm start          # exécute src/main.ts : démonstrations + tests des exercices
-npm run typecheck  # vérifie les types (tsc --noEmit), y compris src/type-tests.ts
+npm install
 ```
 
-## Exercices réalisés (TAF)
+## Lancer le projet
 
-Chaque exercice correspond à un commit (voir [Historique Git](#historique-git)).
-
-| # | Exercice | Fichiers modifiés | Réalisation |
-|---|----------|-------------------|-------------|
-| 1 | Ajouter un nouveau sorcier | `types.ts`, `repository.ts`, `main.ts` | `WizardRepository.register(newWizard: NewWizard): Wizard` : l'appelant ne fournit pas d'id, le référentiel attribue le suivant (plus grand id existant + 1) |
-| 2 | Filtrer par maison | `repository.ts`, `main.ts` | `WizardRepository.findByHouse(house: Wizard["house"]): Wizard[]`, réutilisée par `AcademyService.findByHouse()` |
-| 3 | Événement de sort | `types.ts`, `main.ts` | `SpellCastEvent = Extract<AcademyEvent, { type: "spell-cast" }>` et `handleSpellCast(event: SpellCastEvent)` |
-| 4 | Valider la puissance d'un sort | `decorators.ts`, `repository.ts`, `main.ts` | Décorateur `@ValidateSpellPower` appliqué à `SpellRepository.add()` (`override`) |
-| 5 | Méthode mise en cache | `decorators.ts`, `main.ts` | Décorateur `@Cache` (une `Map` par instance, rangée dans une `WeakMap`) sur `SpellCalculator.calculatePower()` |
-| 6 | Type guard strict | `main.ts` | `validHouses` + `isHouse(value): value is House`, utilisé par `isWizard()` |
-
-### Remarque sur l'exercice 1 : `Omit<Wizard, "id">` ne suffit pas ici
-
-`Wizard` possède une signature d'index (`[key: string]: string | number | boolean`), donc
-`keyof Wizard` vaut `string | number`. Le `Omit` natif calcule alors
-`Pick<Wizard, Exclude<string | number, "id">>`, c'est-à-dire `Pick<Wizard, string | number>` :
-il ne reste **que** la signature d'index, et `name`, `house`, `level`, `active` ne sont plus
-obligatoires. Avec le type d'origine, ces appels compileraient :
-
-```ts
-wizards.register({});                      // aucun champ !
-wizards.register({ house: "Durmstrang" }); // maison invalide
+```bash
+npm start
 ```
 
-De plus, `register()` ne pouvait pas construire un `Wizard` sans cast :
-`{ ...newWizard, id }` n'était pas assignable à `Wizard` (erreur TS2739).
+Le programme affiche d'abord les démonstrations du projet de départ, puis les résultats des exercices 1 à 6.
 
-`NewWizard` repose donc sur un `Omit` « strict » qui utilise le remappage de clés : il retire
-seulement `id` et conserve les propriétés connues **et** la signature d'index.
+Pour vérifier les types sans lancer le programme :
 
-```ts
-export type StrictOmit<T, K extends PropertyKey> = {
-  [P in keyof T as Exclude<P, K>]: T[P];
-};
-
-export type NewWizard = StrictOmit<Wizard, "id"> & { id?: never };
+```bash
+npm run typecheck
 ```
 
-`{ id?: never }` empêche en plus l'appelant de fournir un id : c'est bien le référentiel qui
-l'attribue.
+## Architecture
 
-### Autres choix
-
-- **Exercice 4** : Protego (id 102) n'est plus ajouté au démarrage. C'est le test de
-  l'exercice 4 qui l'ajoute, comme dans le TAF, ce qui évite deux sorts avec le même id. Le sort
-  invalide est ajouté dans un `try/catch`, sinon l'erreur du décorateur arrêterait le programme
-  avant les exercices 5 et 6.
-- **Exercice 6 (bonus)** : `isWizard()` vérifie aussi que les propriétés dynamiques respectent
-  la signature d'index. Sans cela, `{ ..., wand: { core: "Phoenix feather" } }` serait accepté
-  comme `Wizard`, alors que TypeScript refuse ce même objet à la compilation.
-- `AcademyService.findByHouse()` et `getSpellEvents()` réutilisent `findByHouse()` du référentiel
-  et l'alias `SpellCastEvent`, au lieu de dupliquer le filtre et le `Extract<...>`.
-
-## Tests
-
-- **À l'exécution** (`npm start`) : chaque exercice a sa section `=== Exercice N ===` dans
-  `src/main.ts`.
-- **À la compilation** (`npm run typecheck`) : `src/type-tests.ts` vérifie ce qui doit être
-  **refusé** par TypeScript, avec `// @ts-expect-error`. Exemples : fournir un `id` à `register()`,
-  oublier `level`, passer `"Durmstrang"` à `findByHouse()`, typer un événement `level-up` en
-  `SpellCastEvent`. Si l'une de ces lignes devenait valide, `tsc` échouerait. Ce fichier n'est
-  jamais exécuté.
-
-<details>
-<summary><strong>Sortie de <code>npm start</code> pour les exercices</strong> (les durées <code>[TIME]</code> peuvent varier)</summary>
-
-```text
-=== Exercice 1 : Ajouter un nouveau sorcier (NewWizard) ===
-[CALL] add [
-  {
-    name: 'Luna Lovegood',
-    house: 'Ravenclaw',
-    level: 6,
-    active: true,
-    patronus: 'Hare',
-    id: 4
-  }
-]
-[RETURN] add undefined
-[CALL] add [
-  {
-    name: 'Cedric Diggory',
-    house: 'Hufflepuff',
-    level: 7,
-    active: true,
-    id: 5
-  }
-]
-[RETURN] add undefined
-Id attribué à Luna Lovegood : 4
-Id attribué à Cedric Diggory : 5
-[TIME] findById: 0 ms
-{
-  name: 'Luna Lovegood',
-  house: 'Ravenclaw',
-  level: 6,
-  active: true,
-  patronus: 'Hare',
-  id: 4
-}
-
-=== Exercice 2 : Filtrer les sorciers par maison (findByHouse) ===
-Gryffindor : [ 'Harry Potter', 'Hermione Granger' ]
-Slytherin  : [ 'Draco Malfoy' ]
-Ravenclaw  : [ 'Luna Lovegood' ]
-Hufflepuff : [ 'Cedric Diggory' ]
-
-=== Exercice 3 : Événements de lancement de sorts (Extract) ===
-Wizard 1 cast Expelliarmus
-3 événements reçus, 1 transmis au gestionnaire :
-Wizard 1 cast Lumos
-
-=== Exercice 4 : Valider la puissance d'un sort (@ValidateSpellPower) ===
-[CALL] add [ { id: 102, name: 'Protego', category: 'defense', power: 50 } ]
-[RETURN] add undefined
-Sort "Invalid Spell" refusé : Spell power cannot be negative
-Sorts enregistrés : [ 'Expelliarmus (80)', 'Protego (50)' ]
-
-=== Exercice 5 : Méthode mise en cache (@Cache) ===
-[CACHE MISS] calculatePower
-Calculating...
-30
-[CACHE HIT] calculatePower
-30
-[CACHE MISS] calculatePower
-Calculating...
-10
-Nouvelle instance de SpellCalculator (cache séparé) :
-[CACHE MISS] calculatePower
-Calculating...
-30
-
-=== Exercice 6 : Type guard strict (isHouse / isWizard) ===
-isWizard(validData)   : true
-isWizard(invalidData) : false
-isHouse("Ravenclaw")  : true
-isHouse("Durmstrang") : false
-isHouse(42)           : false
-isWizard(wandData)    : false
+```
+hogwarts-academy/
+├── src/
+│   ├── types.ts         modèle de données et types dérivés
+│   ├── repository.ts    stockage des données (repository générique)
+│   ├── decorators.ts    décorateurs de méthode
+│   ├── main.ts          services, type guards et point d'entrée
+│   └── type-tests.ts    tests de types (compilation uniquement)
+├── package.json
+└── tsconfig.json
 ```
 
-</details>
+### types.ts
 
-## Structure du projet
+Contient le modèle de données : `Wizard`, `Spell`, `House`, `SpellCategory` et `AcademyEvent` (union discriminée sur le champ `type`). Les autres types sont construits à partir de ceux-là avec les utility types, par exemple `NewWizard` (un sorcier sans id), `WizardSummary`, `SpellCastEvent` ou `HousePoints`.
 
-```text
-src/
-├── types.ts        types du domaine et utility types (NewWizard, SpellCastEvent…)
-├── repository.ts   Repository<T> générique, WizardRepository, SpellRepository
-├── decorators.ts   Log, MeasureTime, ValidateSpellPower, Cache
-├── main.ts         services, type guards, démonstrations et tests des exercices
-└── type-tests.ts   tests de types vérifiés à la compilation (jamais exécuté)
+### repository.ts
+
+C'est la couche qui stocke les données. `Repository<T>` est une classe générique qui marche pour n'importe quel objet qui a un `id`, avec les méthodes `add`, `findById`, `getAll` et `update`.
+
+Deux classes en héritent :
+
+- `WizardRepository`, qui ajoute `register()` (enregistre un sorcier et lui donne un id) et `findByHouse()`
+- `SpellRepository`, qui redéfinit `add()` pour vérifier la puissance du sort
+
+### decorators.ts
+
+Les décorateurs ajoutent un comportement à une méthode sans toucher à son code :
+
+- `Log` affiche chaque appel avec ses arguments et sa valeur de retour
+- `MeasureTime` affiche le temps d'exécution
+- `ValidateSpellPower` refuse un sort dont la puissance est négative
+- `Cache` réutilise le résultat quand la méthode est rappelée avec les mêmes arguments
+
+### main.ts
+
+Le point d'entrée du programme. On y trouve :
+
+- les type guards `isHouse()` et `isWizard()`, pour vérifier des données de type `unknown`
+- `AcademyService`, qui utilise les deux repositories (lancer un sort, chercher par maison, modifier un sorcier, filtrer les événements)
+- `SpellCalculator`, un petit service qui calcule la puissance d'un sort, avec mise en cache
+- la création des données de départ et les tests de chaque exercice
+
+### type-tests.ts
+
+Ce fichier n'est jamais exécuté. Il contient des lignes qui doivent provoquer une erreur de compilation (avec `// @ts-expect-error`), par exemple `findByHouse("Durmstrang")` ou un appel à `register()` avec un id. Si une de ces lignes devient valide, `npm run typecheck` échoue.
+
+### Dépendances entre les fichiers
+
+```
+main.ts
+├── repository.ts
+│   ├── types.ts
+│   └── decorators.ts
+├── decorators.ts
+└── types.ts
 ```
 
-## Historique Git
+Au lancement, `main.ts` crée les deux repositories, ajoute les sorciers et les sorts de départ, crée `AcademyService`, puis exécute les démonstrations et les tests.
 
-Un commit par étape (`git log --oneline --reverse`) :
+## Exercices réalisés
 
-```text
-chore: projet de départ Hogwarts Academy
-chore: ajout du .gitignore et du package-lock.json
-feat(ex1): enregistrer un nouveau sorcier avec NewWizard
-feat(ex2): filtrer les sorciers par maison avec findByHouse
-feat(ex3): type SpellCastEvent avec Extract et handleSpellCast
-feat(ex4): décorateur ValidateSpellPower sur SpellRepository.add
-feat(ex5): décorateur Cache (WeakMap + Map) et SpellCalculator
-feat(ex6): type guard isHouse basé sur validHouses
-docs: README en français (exercices, tests, sortie attendue)
-```
+1. Ajouter un sorcier : `register(newWizard: NewWizard)` dans `WizardRepository`. L'appelant ne donne pas d'id, c'est le repository qui l'attribue (plus grand id existant + 1).
+2. Filtrer par maison : `findByHouse(house: Wizard["house"])`, qui accepte seulement les quatre maisons.
+3. Événements de sort : `SpellCastEvent = Extract<AcademyEvent, { type: "spell-cast" }>` et la fonction `handleSpellCast()`.
+4. Puissance d'un sort : décorateur `ValidateSpellPower` sur `SpellRepository.add()`.
+5. Mise en cache : décorateur `Cache` (une Map par instance, rangée dans une WeakMap) sur `SpellCalculator.calculatePower()`.
+6. Type guard : `isHouse()` compare la valeur à la liste `validHouses`, et `isWizard()` l'utilise pour refuser une maison comme "Durmstrang".
 
-Pour voir le détail d'un exercice : `git show <hash>` (hash affiché par `git log --oneline`).
+## Remarque sur l'exercice 1
 
-## Note sur les décorateurs
-
-Le projet utilise volontairement l'API de décorateurs « legacy » de TypeScript, pour manipuler
-les trois arguments d'un décorateur de méthode : `target`, `propertyKey` et `descriptor`. Elle
-est activée par `"experimentalDecorators": true` dans `tsconfig.json`.
+`Omit<Wizard, "id">` ne marchait pas comme prévu. Comme `Wizard` a une signature d'index (`[key: string]: ...`), `Omit` faisait aussi disparaître `name`, `house`, `level` et `active`, et un objet vide était accepté comme `NewWizard`. J'ai donc écrit un type `StrictOmit` qui retire seulement `id`.

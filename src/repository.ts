@@ -29,36 +29,23 @@ export class Repository<T extends { id: number }> {
 }
 
 export class WizardRepository extends Repository<Wizard> {
-  /**
-   * Exercice 1 — Enregistre un nouveau sorcier.
-   * L'appelant fournit toutes les propriétés sauf « id » (type NewWizard) ;
-   * le référentiel attribue l'identifiant et renvoie le sorcier complet.
-   */
   register(newWizard: NewWizard): Wizard {
     const wizard: Wizard = { ...newWizard, id: this.nextId() };
     this.add(wizard);
     return wizard;
   }
 
-  /**
-   * Exercice 2 — Renvoie tous les sorciers d'une maison.
-   * Wizard["house"] est un type à accès indexé : il vaut House, donc seules
-   * les quatre maisons de Poudlard sont acceptées (pas une chaîne arbitraire).
-   */
   findByHouse(house: Wizard["house"]): Wizard[] {
     return this.getAll().filter(
       wizard => wizard.house === house
     );
   }
 
-  // Prochain identifiant libre : plus grand id existant + 1, ce qui évite
-  // toute collision avec les sorciers ajoutés directement via add().
   private nextId(): number {
     return this.getAll().reduce((maxId, wizard) => Math.max(maxId, wizard.id), 0) + 1;
   }
 }
 export class SpellRepository extends Repository<Spell> {
-  // Exercice 4 — un sort de puissance négative est refusé avant l'enregistrement.
   @ValidateSpellPower
   override add(spell: Spell): void {
     super.add(spell);
